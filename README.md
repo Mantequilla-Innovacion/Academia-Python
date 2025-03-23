@@ -37,7 +37,9 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Configura tus variables de entorno en un archivo `.env`:
+4. Añade credenciales para inicializacion de firestore `friebaseconsole->settings->serviceaccounts->adminsdk`.
+
+5. Configura tus variables de entorno en un archivo `.env`:
 
 ## Uso
 
