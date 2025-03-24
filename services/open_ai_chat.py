@@ -1,23 +1,20 @@
-import os
-from dotenv import load_dotenv
-from openai import OpenAI
 from firebase.firestore import chats_collection
+from helpers.openai_client import openai_client
 
-load_dotenv()
-
-openai_client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("OPENAI_BASE_URL") ## https://api.openai.com/v1 -> Custom server
-)
-
-
-def open_ai_request(chat_id: str, user_message) -> dict:
+def open_ai_request(chat_id: str, user_message: str, dependencies: dict) -> dict:
     chat = chats_collection.document(chat_id)
     doc = chat.get()
+
     if not doc.exists:
-        return {"error": f"ERROR THERE IS NOT CHATBOT WITH THIS ID({chat_id})"}
-    doc_content = doc.to_dict()
-    history = doc_content.get("history", [])
+        return {"error": f"ERROR: There is no chatbot with this ID ({chat_id})"}
+
+    chat_data = doc.to_dict()
+    user_id = chat_data.get("user_id")
+
+    if dependencies["sub"] != user_id:
+        return {"error": "This chat does not belong to you"}
+
+    history = chat_data.get("history", [])
     history.append({"role": "user", "content": user_message})
     open_ai_request = openai_client.chat.completions.create(
         model="gpt-4o-mini",

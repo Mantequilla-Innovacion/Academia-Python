@@ -5,11 +5,13 @@ from auth.auth import validate_token
 
 router = APIRouter()
 
-@router.post("/chat", tags=["Chat"], dependencies=[Depends(validate_token)])
-def create_chat(chat: Chat):
+@router.post("/chat", tags=["Chat"])
+def create_chat(chat: Chat, dependencies=Depends(validate_token)):
+    chat.user_id = dependencies["sub"]
     doc_ref = chats_collection.document()
-    doc_ref.set({"id": doc_ref.id, "name": chat.name, "history": []})
-    return {"id": doc_ref.id, "name": chat.name, "history": []}
+    doc_ref.set({"id": doc_ref.id, "name": chat.name, "user_id": chat.user_id, "history": []})
+    return { "id": doc_ref.id, "name": chat.name, "user_id": chat.user_id, "history": [] }
+
 
 @router.get("/chats", tags=["Chat"], dependencies=[Depends(validate_token)])
 def get_all_chats():

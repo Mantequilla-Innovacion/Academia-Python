@@ -24,10 +24,14 @@ def create_token(user):
 def create_new_user(email, password, username):
     try:
         user = auth.create_user_with_email_and_password(email, password)
-        doc_ref = users_collection.document()
-        doc_ref.set({"id": doc_ref.id, "email": email, "username": username})
-
         token = create_token(user["localId"])
+        doc_ref = users_collection.document(user["localId"])
+        doc_ref.set({
+            "id": user["localId"], 
+            "email": email, 
+            "username": username
+            })
+
 
         response = JSONResponse(
             content={"token": token},
@@ -53,8 +57,8 @@ def create_user_session(email: str, password: str):
         return response
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
-    
+
+
 def validate_token(request: Request):
     token = request.cookies.get("session")
     if not token:
@@ -62,5 +66,11 @@ def validate_token(request: Request):
     try:
         decoded_token = jwt.decode(token, SECRET_WORD, algorithms=ALGORITHM)
         return decoded_token
-    except:
-        pass
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+def destroy_user_session():
+    response = JSONResponse(content={"message": "Logged Out succesfully"})
+    response.delete_cookie("session")
+    return response
